@@ -344,6 +344,36 @@ extension RSSelectionMenu {
     }
 }
 
+extension UIColor {
+    convenience init(hexValue: Int){
+    
+    self.init(red: (CGFloat)((Double)((hexValue & 0xFF0000) >> 16)/255.0),
+                green: (CGFloat)((Double)((hexValue & 0xFF00) >> 8)/255.0),
+                blue: (CGFloat)((Double)(hexValue & 0xFF)/255.0),
+                alpha: 1.0)
+    }
+    
+    convenience init(hexValue: Int, withTransparency alpha:CGFloat){
+        self.init(red: (CGFloat)((Double)((hexValue & 0xFF0000) >> 16)/255.0),
+            green: (CGFloat)((Double)((hexValue & 0xFF00) >> 8)/255.0),
+            blue: (CGFloat)((Double)(hexValue & 0xFF)/255.0),
+            alpha: alpha)
+    }
+    
+    convenience init(named colorName:Colors) {
+        self.init(hexValue: colorName.rawValue)
+    }
+    
+    convenience init(named colorName:Colors, withTransparency alpha:CGFloat) {
+        self.init(hexValue: colorName.rawValue, withTransparency: alpha)
+    }
+}
+
+enum Colors:Int{
+    //mcdermott---------------
+    case blueBackground = 0x1825AA
+}
+
 //MARK:- Private
 extension RSSelectionMenu {
 
@@ -438,21 +468,39 @@ extension RSSelectionMenu {
     
     // get alert controller
     fileprivate func getAlertViewController(style: UIAlertController.Style, title: String?, action: String?, height: Double?) -> UIAlertController {
-        let alertController = UIAlertController(title: title, message: nil, preferredStyle: style)
+        let alertController = UIAlertController(title: "", message: nil, preferredStyle: style)
+        
+        let attributedString = NSAttributedString(string: title ?? "", attributes: [
+            NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 16), //your font here
+            NSAttributedString.Key.foregroundColor : UIColor.white
+        ])
+        
+        alertController.setValue(attributedString, forKey: "attributedTitle")
+        
+        alertController.view.tintColor = .white
         
         let actionTitle = action ?? doneButtonTitle
         let doneAction = UIAlertAction(title: actionTitle, style: .default) { [weak self] (doneButton) in
             self?.menuWillDismiss()
         }
         
+        let cancelAction = UIAlertAction(title: "Cancel", style: .default) { [weak self] (cancelButton) in
+        }
+        
         // add done action
         if (tableView?.selectionStyle == .multiple || !self.dismissAutomatically)  {
             alertController.addAction(doneAction)
+            alertController.addAction(cancelAction)
         }
         
         let viewHeight = height ?? 350
         alertController.preferredContentSize.height = CGFloat(viewHeight)
         self.preferredContentSize.height = alertController.preferredContentSize.height
+        
+        if #available(iOS 11.0, *) {
+            alertController.view.subviews.first?.subviews.first?.subviews.first?.backgroundColor = UIColor(hexValue: Int(0x1825AA))
+        }
+        
         return alertController
     }
     
